@@ -1,2 +1,3 @@
 class Clock():
-    pass
+    def render():
+        print('Hello')
