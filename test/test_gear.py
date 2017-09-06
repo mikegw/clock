@@ -39,6 +39,4 @@ class GearDrawingTest(unittest.TestCase):
 
     def test_object_linked_to_scene(self):
         self.blender_mock.context.scene.objects.link.assert_called_with(self.object)
-
-    def test_object_given_correct_vertices(self):
-        pass
+        

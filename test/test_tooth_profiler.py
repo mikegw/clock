@@ -17,6 +17,7 @@ class ToothProfilerTest(unittest.TestCase):
 
     def test_tooth_profile_fits_in_the_circular_pitch(self):
         end_of_profile = self.profile[-1]
-        rotation = Rotation(math.pi/6, Vector(0, 0, 1))
+        end_angle = (2 * math.pi / 12) - (2 * math.pi / (12 * 20))
+        rotation = Rotation(end_angle, Vector(0, 0, 1))
         expected_direction = rotation.apply(Vector(1, 0, 0))
         self.assertEqual(end_of_profile.direction(), expected_direction)
