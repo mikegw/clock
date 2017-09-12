@@ -26,7 +26,7 @@ class Vector():
             raise TypeError("{} is not 3-dimensional".format(self))
         if other.dimension() != 3:
             raise TypeError("{} is not 3-dimensional".format(other))
-        return Vector(
+        return type(self)(
             (self.y * other.z) - (self.z * other.y),
             (self.z * other.x) - (self.x * other.z),
             (self.x * other.y) - (self.y * other.x)
@@ -34,7 +34,7 @@ class Vector():
 
     def __str__(self):
         rounded_values = (str(round(value, 5)) for value in self.values)
-        return 'Vector({})'.format(", ".join(rounded_values))
+        return '{}({})'.format(type(self).__name__, ", ".join(rounded_values))
 
     def __repr__(self):
         return str(self)
@@ -44,7 +44,7 @@ class Vector():
 
     def __add__(self, other):
         new_values = (v1 + v2 for v1, v2 in zip(self.values, other.values))
-        return Vector(*new_values)
+        return type(self)(*new_values)
 
     def __sub__(self, other):
         return self + (-other)
@@ -65,13 +65,13 @@ class Vector():
         return rounded_self_values == rounded_other_values
 
     def __mul__(self, other):
-        return Vector(*(value * other for value in self.values))
+        return type(self)(*(value * other for value in self.values))
 
     def __rmul__(self, other):
-        return Vector(*(other * value for value in self.values))
+        return type(self)(*(other * value for value in self.values))
 
     def __truediv__(self, other):
-        return Vector(*(value / other for value in self.values))
+        return type(self)(*(value / other for value in self.values))
 
     def __neg__(self):
-        return Vector(*(value.__neg__() for value in self.values))
+        return type(self)(*(value.__neg__() for value in self.values))

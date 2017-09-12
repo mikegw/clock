@@ -76,3 +76,11 @@ class RotationTest(unittest.TestCase):
         rotation = self.new_rotation(math.pi, Vector(2, 1, 0))
         rotated = rotation.apply(vector, Vector(1, 1, 1))
         self.assertEqual(rotated, Vector(1.8, 0.4, -1))
+
+    def test_preserves_class_of_vector(self):
+        class SubclassOfVector(Vector):
+            pass
+        vector = SubclassOfVector(1, 2, 3)
+        rotation = self.new_rotation(math.pi, Vector(2, 1, 0))
+        rotated = rotation.apply(vector, Vector(1, 1, 1))
+        self.assertIsInstance(rotated, SubclassOfVector)

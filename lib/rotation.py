@@ -27,7 +27,7 @@ class Rotation():
         quaternion = self._to_quaternion_()
         reciprocal_quaternion = self.reciprocal()._to_quaternion_()
         conjugated = quaternion * Quaternion(0, vector - origin) * reciprocal_quaternion
-        return conjugated.imaginary + origin
+        return type(vector)(*conjugated.imaginary) + origin
 
     def _to_quaternion_(self):
         return Quaternion(

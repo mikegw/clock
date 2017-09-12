@@ -1,88 +1,103 @@
 from itertools import count
 from .vector import Vector
-from .rotation import Rotation
-from .tooth_profiler import ToothProfiler
+from .gear_profile import GearProfile
 from . import face_helper
-import math
 
 class Gear():
     _count = count(1)
-    _density = 10
-    _axle_vertices = 24
-    _axle_radius = 0.2
-    _module = 0.2
+    _depth = 0.2
 
     def __init__(self, teeth=None):
-        self.teeth = teeth
-        self.id = next(self._count)
+        self.__teeth = teeth
+        self.__gear_profile = GearProfile(teeth)
+        self.__id = next(self._count)
 
     def __str__(self):
         return "Gear %s" % self.id
+
+    @property
+    def teeth(self):
+        return self.__teeth
+
+    @property
+    def id(self):
+        return self.__id
 
     def draw(self, center_position, blender):
         mesh = blender.data.meshes.new(str(self))
         obj = blender.data.objects.new(str(self), mesh)
         blender.context.scene.objects.link(obj)
-        mesh.from_pydata(
-            self.vertices(),
-            [],
-            self.faces()
-        )
+
+        vertices = self.vertices()
+        for vertex_id in range(len(vertices)):
+            vertex = vertices[vertex_id]
+            vertex.id = vertex_id
+
+        faces = self.faces()
+        faces_as_ints = [tuple(vertex.id for vertex in face) for face in faces]
+
+        mesh.from_pydata(vertices, [], faces_as_ints)
         mesh.update(calc_edges = True)
 
     def vertices(self):
-        return list(
-            self.__outer_profile_vertices() + self.__inner_profile_vertices()
+        vertices = list(
+            self.__inner_bottom_vertices() + \
+            self.__outer_bottom_vertices() + \
+            self.__outer_top_vertices()    + \
+            self.__inner_top_vertices()
         )
+        return vertices
 
     def faces(self):
-        outer_profile_id_min = 0
-        outer_profile_id_max = len(self.__outer_profile_vertices())
-        inner_profile_id_min = outer_profile_id_max
-        inner_profile_id_max = \
-            outer_profile_id_max + len(self.__inner_profile_vertices())
-        faces = face_helper.faces_between_vertex_groups(
-            tuple(range(outer_profile_id_min, outer_profile_id_max)),
-            tuple(range(inner_profile_id_min, inner_profile_id_max)),
+        faces = []
+        faces += face_helper.faces_between_vertex_groups(
+            self.__inner_bottom_vertices(),
+            self.__outer_bottom_vertices(),
             create_loop = True,
             face_count = self.teeth
         )
-        print(faces)
+        faces += face_helper.faces_between_vertex_groups(
+            self.__outer_bottom_vertices(),
+            self.__outer_top_vertices(),
+            create_loop = True,
+            face_count = len(self.__outer_bottom_vertices())
+        )
+        faces += face_helper.faces_between_vertex_groups(
+            self.__outer_top_vertices(),
+            self.__inner_top_vertices(),
+            create_loop = True,
+            face_count = self.teeth
+        )
         return faces
 
-    def __outer_profile_vertices(self):
-        if not hasattr(self, '__outer'):
-            self.__outer = self.__calculate_outer_profile_vertices()
-        return self.__outer
+    def __inner_bottom_vertices(self):
+        try:
+            return self.__inner_bottom
+        except AttributeError:
+            self.__inner_bottom = self.__gear_profile.inner_vertices()
+            return self.__inner_bottom
 
-    def __inner_profile_vertices(self):
-        if not hasattr(self, '__inner'):
-            self.__inner = self.__calculate_inner_profile_vertices()
-        return self.__inner
+    def __outer_bottom_vertices(self):
+        try:
+            return self.__outer_bottom
+        except AttributeError:
+            self.__outer_bottom = self.__gear_profile.outer_vertices()
+            return self.__outer_bottom
 
-    def __calculate_outer_profile_vertices(self):
-        profiler = ToothProfiler(density = self._density, module = self._module)
-        outer_profile = profiler.create_profile(tooth_count = self.teeth)
-        return self.__rotations_of_profile(outer_profile)
+    def __inner_top_vertices(self):
+        try:
+            return self.__inner_top
+        except AttributeError:
+            depth = Vector(0, 0, self._depth)
+            vectors = tuple(v + depth for v in self.__inner_bottom_vertices())
+            self.__inner_top = vectors
+            return self.__inner_top
 
-    def __calculate_inner_profile_vertices(self):
-        inner_profile = []
-        inner_density = self._axle_vertices // self.teeth
-        for i in range(inner_density):
-            rotation = Rotation(
-                angle = (i / inner_density) * (2 * math.pi / self.teeth),
-                axis = Vector(0,0,1)
-            )
-            inner_profile.append(rotation.apply(Vector(self._axle_radius,0,0)))
-        return self.__rotations_of_profile(inner_profile)
-
-    def __rotations_of_profile(self, profile):
-        vertices = []
-        for i in range(self.teeth):
-            rotation = Rotation(
-                angle = i * (2 * math.pi / self.teeth),
-                axis = Vector(0, 0, 1)
-            )
-            rotated_profile = [rotation.apply(v) for v in profile]
-            vertices += rotated_profile
-        return vertices
+    def __outer_top_vertices(self):
+        try:
+            return self.__outer_top
+        except AttributeError:
+            depth = Vector(0, 0, self._depth)
+            vectors = tuple(v + depth for v in self.__outer_bottom_vertices())
+            self.__outer_top = vectors
+            return self.__outer_top

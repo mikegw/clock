@@ -1,5 +1,6 @@
 import math
 from .vector import Vector
+from .vertex import Vertex
 from .rotation import Rotation
 
 class ToothProfiler():
@@ -9,7 +10,7 @@ class ToothProfiler():
 
     def create_profile(self, tooth_count):
         pitch_radius = self.module * tooth_count / 2
-        start_vector = Vector(pitch_radius, 0, 0)
+        start_vector = Vertex(pitch_radius, 0, 0)
         tooth_angle = 2 * math.pi / tooth_count
         rotation = Rotation(tooth_angle / self.density, Vector(0, 0, 1))
         profile = [start_vector]
