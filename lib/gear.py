@@ -23,7 +23,7 @@ class Gear():
     def id(self):
         return self.__id
 
-    def draw(self, center_position, blender):
+    def draw(self, blender, center_position = Vector(0,0,0), rotation = None):
         mesh = blender.data.meshes.new(str(self))
         obj = blender.data.objects.new(str(self), mesh)
         blender.context.scene.objects.link(obj)
@@ -31,6 +31,9 @@ class Gear():
         vertices = self.vertices()
         for vertex_id in range(len(vertices)):
             vertex = vertices[vertex_id]
+            if rotation:
+                vertex.rotate(rotation, Vector(0,0,0))
+            vertex.translate(center_position)
             vertex.id = vertex_id
 
         faces = self.faces()
@@ -51,6 +54,18 @@ class Gear():
     def faces(self):
         faces = []
         faces += face_helper.faces_between_vertex_groups(
+            self.__outer_top_vertices(),
+            self.__inner_top_vertices(),
+            create_loop = True,
+            face_count = self.teeth
+        )
+        faces += face_helper.faces_between_vertex_groups(
+            self.__inner_top_vertices(),
+            self.__inner_bottom_vertices(),
+            create_loop = True,
+            face_count = self.teeth
+        )
+        faces += face_helper.faces_between_vertex_groups(
             self.__inner_bottom_vertices(),
             self.__outer_bottom_vertices(),
             create_loop = True,
@@ -61,12 +76,6 @@ class Gear():
             self.__outer_top_vertices(),
             create_loop = True,
             face_count = len(self.__outer_bottom_vertices())
-        )
-        faces += face_helper.faces_between_vertex_groups(
-            self.__outer_top_vertices(),
-            self.__inner_top_vertices(),
-            create_loop = True,
-            face_count = self.teeth
         )
         return faces
 

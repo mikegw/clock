@@ -6,7 +6,7 @@ import math
 
 
 class GearProfile():
-    _density = 15
+    _density = 8
     _axle_vertices = 24
     _axle_radius = 0.2
     _module = 0.2
