@@ -41,6 +41,7 @@ class Gear():
 
         mesh.from_pydata(vertices, [], faces_as_ints)
         mesh.update(calc_edges = True)
+        return obj
 
     def vertices(self):
         vertices = list(

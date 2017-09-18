@@ -16,15 +16,15 @@ class ToothProfiler():
 
     def create_profile(self, tooth_count):
         tooth_angle = 2 * math.pi / tooth_count
-        section_builder = self.__tooth_section_builder(
+        section_builder = self.__cycloid_section_builder(
             tooth_count,
             tooth_angle,
             self.module,
             self._pinion_teeth,
             self._z_axis
         )
-        first_dedendum = section_builder(tooth_angle / 4, self._dedendum, -1)
-        first_addendum = section_builder(tooth_angle / 4, self._addendum,  1)
+        first_dedendum =  section_builder(    tooth_angle / 4, self._dedendum, -1)
+        first_addendum =  section_builder(    tooth_angle / 4, self._addendum,  1)
         second_addendum = section_builder(3 * tooth_angle / 4, self._addendum, -1)
         second_dedendum = section_builder(3 * tooth_angle / 4, self._dedendum,  1)
 
@@ -33,11 +33,12 @@ class ToothProfiler():
             list(reversed(second_addendum)) + \
             second_dedendum
 
-
-    def __tooth_section_builder(self, tooth_count, tooth_angle, module, pinion_teeth, axis):
+    def __cycloid_section_builder(self, tooth_count, tooth_angle, module, pinion_teeth, axis):
         def builder(start_angle, section_type, direction):
+            gear_to_pinion_ratio = (pinion_teeth / tooth_count) / 2
+
             pitch_radius = module * tooth_count / 2
-            circle_radius = module * pinion_teeth / 2
+            circle_radius = pitch_radius * gear_to_pinion_ratio
 
             initial_rotation = Rotation(start_angle, axis)
             generator = initial_rotation.apply(Vertex(pitch_radius, 0, 0))
@@ -48,7 +49,7 @@ class ToothProfiler():
             gear_rotation_angle = direction * tooth_angle / self.density
             gear_rotation = Rotation(gear_rotation_angle, axis)
 
-            circle_rotation_angle = tooth_angle * tooth_count / self._pinion_teeth
+            circle_rotation_angle = tooth_angle / gear_to_pinion_ratio
             circle_rotation_angle = circle_rotation_angle * section_type * direction
             circle_rotation = Rotation(circle_rotation_angle / self.density, axis)
 
@@ -65,9 +66,7 @@ class ToothProfiler():
                 else:
                     break
             return profile
-
         return builder
-
 
     def __angle_of_vector(self, vector):
         return math.atan(vector.y / vector.x)
